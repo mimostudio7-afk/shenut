@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شنوت - Shenut</title>
+    <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Cairo', sans-serif; } </style>
+</head>
+<body class="bg-[#f9fafb] text-[#111827]">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const APP_NAME = 'شنوت';
+        const OWNER_WHATSAPP_NUMBER = '201030566422'; 
+
+        const INITIAL_PRODUCTS = {
+          grocery: {
+            rice: { name: 'أرز فاخر (كجم)', price: 30, stock: 50 },
+            pasta: { name: 'مكرونة (كيس)', price: 10, stock: 100 },
+            flour: { name: 'دقيق (كجم)', price: 18, stock: 30 },
+            oil: { name: 'زيت طعام (لتر)', price: 90, stock: 20 },
+            ghee: { name: 'سمن بلدي (كجم)', price: 300, stock: 10 },
+            sugar: { name: 'سكر (كجم)', price: 27, stock: 40 },
+            tea: { name: 'شاي (علبة)', price: 40, stock: 25 },
+            coffee: { name: 'بن (كيس)', price: 60, stock: 15 },
+            milk: { name: 'لبن (لتر)', price: 25, stock: 35 },
+            cheese: { name: 'جبنة (علبة)', price: 35, stock: 30 },
+            eggs: { name: 'بيض (كرتونة)', price: 150, stock: 12 },
+            tuna: { name: 'تونة (علبة)', price: 45, stock: 20 },
+            beans: { name: 'فول (كيس)', price: 15, stock: 40 },
+            lentils: { name: 'عدس (كيس)', price: 20, stock: 25 },
+            spices: { name: 'بهارات مشكلة (كيس)', price: 12, stock: 50 },
+          },
+          cosmetics: {
+            shampoo: { name: 'شامبو شعر (عبوة)', price: 85, stock: 15 },
+            conditioner: { name: 'بلسم شعر (عبوة)', price: 80, stock: 15 },
+            body_wash: { name: 'شامبو للجسم (عبوة)', price: 95, stock: 12 },
+            soap: { name: 'صابون (قطعة)', price: 15, stock: 60 },
+            moisturizer: { name: 'مرطب بشرة (عبوة)', price: 120, stock: 10 },
+            perfume: { name: 'عطر (عبوة)', price: 350, stock: 8 },
+            lipstick: { name: 'أحمر شفاه', price: 110, stock: 20 },
+            mascara: { name: 'ماسكارا', price: 130, stock: 15 },
+            eyeliner: { name: 'آيلاينر', price: 95, stock: 18 },
+            foundation: { name: 'كريم أساس', price: 180, stock: 10 },
+            face_mask: { name: 'ماسك للوجه', price: 25, stock: 40 },
+            scrub: { name: 'مقشر للجسم', price: 140, stock: 12 },
+            nail_polish: { name: 'طلاء أظافر', price: 35, stock: 35 },
+            deodorant: { name: 'مزيل عرق', price: 70, stock: 25 },
+            sunscreen: { name: 'واقي شمس', price: 160, stock: 8 },
+          }
+        };
+
+        function App() {
+          const [activeTab, setActiveTab] = useState('products');
+          const [isAdminMode, setIsAdminMode] = useState(false);
+          const [products, setProducts] = useState(INITIAL_PRODUCTS);
+          const [cart, setCart] = useState([]);
+          const [deliveryArea, setDeliveryArea] = useState('central');
+          const [deliveryFees, setDeliveryFees] = useState(10);
+          const [deliveryAddress, setDeliveryAddress] = useState('');
+          const [orders, setOrders] = useState([]);
+          
+          const [isSubscribed, setIsSubscribed] = useState(false);
+          const [userProfile, setUserProfile] = useState({ age: 25, gender: 'male', height: 175, weight: 75, goal: 'lose' });
+          const [showProfileModal, setShowProfileModal] = useState(false);
+          const [tempProfile, setTempProfile] = useState({ age: 25, gender: 'male', height: 175, weight: 75, goal: 'lose' });
+          const [activeFitnessPlan, setActiveFitnessPlan] = useState('home');
+
+          const [editProductGroup, setEditProductGroup] = useState('grocery');
+          const [editProductKey, setEditProductKey] = useState('');
+          const [editProductName, setEditProductName] = useState('');
+          const [editProductPrice, setEditProductPrice] = useState(0);
+          const [editProductStock, setEditProductStock] = useState(0);
+
+          useEffect(() => {
+            const areas = { central: 10, north: 15, south: 20, east: 12, west: 18 };
+            setDeliveryFees(areas[deliveryArea] || 10);
+          }, [deliveryArea]);
+
+          const addToCart = (group, key, product) => {
+            if (product.stock > 0) {
+              setCart([...cart, { group, key, name: product.name, price: product.price }]);
+              setProducts({
+                ...products,
+                [group]: {
+                  ...products[group],
+                  [key]: { ...product, stock: product.stock - 1 }
+                }
+              });
+            }
+          };
+
+          const removeFromCart = (index) => {
+            const item = cart[index];
+            setProducts({
+              ...products,
+              [item.group]: {
+                ...products[item.group],
+                [item.key]: {
+                  ...products[item.group][item.key],
+                  stock: products[item.group][item.key].stock + 1
+                }
+              }
+            });
+            setCart(cart.filter((_, i) => i !== index));
+          };
+
+          const calculateTotal = () => {
+            const subtotal = cart.reduce((acc, item) => acc + item.price, 0);
+            return subtotal + deliveryFees;
+          };
+
+          const placeOrder = () => {
+            const newOrder = {
+              id: Date.now(),
+              items: [...cart],
+              total: calculateTotal(),
+              area: deliveryArea,
+              address: deliveryAddress,
+              status: 'معلق'
+            };
+            setOrders([...orders, newOrder]);
+            
+            let message = `🛒 *طلب جديد عبر تطبيق ${APP_NAME}*\n\n`;
+            cart.forEach(i => message += `- ${i.name} (${i.price} ج.م)\n`);
+            message += `\n*منطقة التوصيل:* ${deliveryArea}\n*العنوان:* ${deliveryAddress}\n*رسوم التوصيل:* ${deliveryFees} ج.م\n*الإجمالي المطلوب:* ${calculateTotal()} ج.م`;
+
+            setCart([]);
+            setDeliveryAddress('');
+            window.location.href = `https://wa.me/${OWNER_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+          };
+
+          const requestFitnessSubscription = () => {
+            const message = `🏋️‍♂️ *طلب اشتراك جديد في قسم اللياقة البدنية*\n\nأرغب في الاشتراك الشهري بقسم اللياقة والتغذية بقيمة (170 ج.م).\nبرجاء تفعيل الحساب بعد الدفع عبر فودافون كاش.`;
+            window.location.href = `https://wa.me/${OWNER_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+          };
+
+          const updateProduct = () => {
+            if (editProductKey && editProductName) {
+              setProducts({
+                ...products,
+                [editProductGroup]: {
+                  ...products[editProductGroup],
+                  [editProductKey]: { name: editProductName, price: editProductPrice, stock: editProductStock }
+                }
+              });
+              alert('تم تعديل المنتج بنجاح.');
+            }
+          };
+
+          const handleProfileSubmit = () => {
+            setUserProfile({
+              age: Number(tempProfile.age),
+              gender: tempProfile.gender,
+              height: Number(tempProfile.height),
+              weight: Number(tempProfile.weight),
+              goal: tempProfile.goal
+            });
+            setShowProfileModal(false);
+            alert('تم تحديث بياناتك وتخصيص الخطط بنجاح!');
+          };
+
+          const calculateBMR = () => {
+            let bmr = userProfile.gender === 'male'
+              ? (10 * userProfile.weight) + (6.25 * userProfile.height) - (5 * userProfile.age) + 5
+              : (10 * userProfile.weight) + (6.25 * userProfile.height) - (5 * userProfile.age) - 161;
+            let tdee = bmr * 1.375; 
+            if (userProfile.goal === 'lose') tdee -= 500;
+            if (userProfile.goal === 'gain') tdee += 400;
+            return { bmr: Math.round(bmr), target: Math.round(tdee) };
+          };
+
+          const renderProducts = (groupName, items) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Object.entries(items).map(([key, product]) => (
+                <div key={key} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-800 mb-1">{product.name}</h3>
+                    <p className="text-gray-600 text-sm mb-2">السعر: {product.price} ج.م</p>
+                    <p className={`text-xs mb-3 ${product.stock > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                      {product.stock > 0 ? `المتوفر: ${product.stock}` : 'غير متوفر حالياً'}
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => addToCart(groupName, key, product)} 
+                    disabled={product.stock === 0}
+                    className={`w-full py-2 rounded font-medium text-white transition-colors ${
+                      product.stock > 0 ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    إضافة للسلة
+                  </button>
+                </div>
+              ))}
+            </div>
+          );
+
+          const { bmr, target } = calculateBMR();
+
+          return (
+            <div className="min-h-screen bg-gray-50 pb-28">
+              <nav className="bg-white shadow-sm sticky top-0 z-20 border-b border-gray-200">
+                <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                  <h1 className="text-xl font-bold text-indigo-600">{APP_NAME}</h1>
+                  <div className="flex space-x-2 space-x-reverse text-sm">
+                    <button onClick={() => { setActiveTab('products'); setIsAdminMode(false); }} className={`px-3 py-1.5 rounded font-medium ${activeTab === 'products' && !isAdminMode ? 'bg-indigo-100 text-indigo-600' : 'text-gray-600'}`}>المنتجات</button>
+                    <button onClick={() => { setActiveTab('fitness'); setIsAdminMode(false); }} className={`px-3 py-1.5 rounded font-medium ${activeTab === 'fitness' && !isAdminMode ? 'bg-indigo-100 text-indigo-600' : 'text-gray-600'}`}>اللياقة 🔒</button>
+                    <button onClick={() => setIsAdminMode(true)} className={`px-3 py-1.5 rounded font-medium ${isAdminMode ? 'bg-indigo-600 text-white' : 'text-gray-600'}`}>لوحة التحكم</button>
+                    <button onClick={() => setShowProfileModal(true)} className="px-2 py-1.5 rounded bg-gray-100">👤 بياناتي</button>
+                  </div>
+                </div>
+              </nav>
+
+              <main className="max-w-7xl mx-auto px-4 py-6">
+                {!isAdminMode ? (
+                  <>
+                    {activeTab === 'products' && (
+                      <div className="space-y-8">
+                        <section>
+                          <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">📦 السلع الغذائية</h2>
+                          {renderProducts('grocery', products.grocery)}
+                        </section>
+                        <section>
+                          <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">💄 المواد التجميلية</h2>
+                          {renderProducts('cosmetics', products.cosmetics)}
+                        </section>
+                      </div>
+                    )}
+
+                    {activeTab === 'fitness' && (
+                      <div>
+                        {!isSubscribed ? (
+                          <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 text-center space-y-6 max-w-lg mx-auto">
+                            <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">🔒</div>
+                            <h2 className="text-2xl font-bold text-gray-800">قسم اللياقة البدنية والتغذية</h2>
+                            <p className="text-gray-600 text-sm leading-relaxed">
+                              هذا القسم مخصص للمشتركين فقط ويشمل خطط تمارين مخصصة، حساب السعرات الدقيقة، وجداول الأكل المناسبة لهدفك.
+                            </p>
+                            <div className="bg-indigo-50 p-4 rounded-lg">
+                              <p className="text-3xl font-extrabold text-indigo-600">170 ج.م <span className="text-sm font-normal text-gray-600">/ شهرياً</span></p>
+                            </div>
+                            <button onClick={requestFitnessSubscription} className="w-full py-3 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 shadow-md">
+                              اشترك الآن عبر واتساب (فودافون كاش) 💬
+                            </button>
+                            <div className="pt-2 text-center">
+                              <button onClick={() => setIsSubscribed(true)} className="text-xs text-indigo-500 underline">معاينة القسم تجريبياً</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-6">
+                            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
+                              <div className="flex justify-between items-center border-b pb-3">
+                                <div>
+                                  <h3 className="font-bold text-lg text-gray-800">📊 خطتك التفاعلية المخصصة</h3>
+                                  <p className="text-xs text-gray-500">الهدف: {userProfile.goal === 'lose' ? 'خسارة الوزن وحرق الدهون' : userProfile.goal === 'gain' ? 'بناء عضلات وزيادة الوزن' : 'لياقة وصحة عامة'}</p>
+                                </div>
+                                <button onClick={() => setShowProfileModal(true)} className="text-xs px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-md font-medium">تعديل بياناتي</button>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4 text-center">
+                                <div className="bg-gray-50 p-3 rounded-lg">
+                                  <p className="text-xl font-bold text-indigo-600">{bmr} سعرة</p>
+                                  <p className="text-xs text-gray-500">معدل الحرق الأساسي (BMR)</p>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-lg">
+                                  <p className="text-xl font-bold text-emerald-600">{target} سعرة</p>
+                                  <p className="text-xs text-gray-500">السعرات المستهدفة يومياً</p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
+                              <h3 className="font-bold text-base text-gray-800">🏋️‍♂️ اختر جدول التمرين المناسب</h3>
+                              <div className="flex gap-2">
+                                <button onClick={() => setActiveFitnessPlan('home')} className={`flex-1 py-2 rounded-lg text-xs font-semibold ${activeFitnessPlan === 'home' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'}`}>تمارين منزلية (بدون أدوات)</button>
+                                <button onClick={() => setActiveFitnessPlan('gym')} className={`flex-1 py-2 rounded-lg text-xs font-semibold ${activeFitnessPlan === 'gym' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'}`}>تمارين الجيم (أجهزة وأوزان)</button>
+                              </div>
+                              <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
+                                {activeFitnessPlan === 'home' ? (
+                                  <ul className="list-disc list-inside text-gray-600 space-y-1 text-xs">
+                                    <li>تمرين الضغط (Push-ups): 3 × 12</li>
+                                    <li>تمرين السكوات (Squats): 4 × 15</li>
+                                    <li>تمرين الطعنات (Lunges): 3 × 10</li>
+                                    <li>تمرين البلانك (Plank): 3 × 45 ثانية</li>
+                                  </ul>
+                                ) : (
+                                  <ul className="list-disc list-inside text-gray-600 space-y-1 text-xs">
+                                    <li>جهاز سحب الظهر (Lat Pulldown): 3 × 10</li>
+                                    <li>جهاز دفع الصدر (Chest Press): 3 × 10</li>
+                                    <li>جهاز دفع الأرجل (Leg Press): 4 × 12</li>
+                                    <li>كارديو دراجة أو سير: 15 دقيقة</li>
+                                  </ul>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="space-y-6">
+                    <h2 className="text-2xl font-bold text-gray-800">🛠️ لوحة تحكم المالك</h2>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"><p className="text-xs text-gray-500">إجمالي الطلبات</p><p className="text-2xl font-bold">{orders.length}</p></div>
+                      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"><p className="text-xs text-gray-500">إجمالي المبيعات</p><p className="text-2xl font-bold text-emerald-600">{orders.reduce((a, b) => a + b.total, 0)} ج.م</p></div>
+                    </div>
+                  </div>
+                )}
+              </main>
+
+              {cart.length > 0 && !isAdminMode && (
+                <div className="fixed bottom-0 left-0 right-0 bg-white shadow-xl border-t border-gray-200 p-4 z-30">
+                  <div className="max-w-7xl mx-auto space-y-3">
+                    <div className="flex justify-between items-center"><h3 className="font-bold text-sm">🛒 سلة التسوق ({cart.length})</h3><span className="font-bold text-indigo-600 text-sm">الإجمالي: {calculateTotal()} ج.م</span></div>
+                    <div className="flex gap-2">
+                      <select value={deliveryArea} onChange={(e) => setDeliveryArea(e.target.value)} className="p-2 border rounded text-xs w-1/3">
+                        <option value="central">المركز (10 ج.م)</option>
+                        <option value="north">شمال (15 ج.م)</option>
+                        <option value="south">جنوب (20 ج.م)</option>
+                        <option value="east">شرق (12 ج.م)</option>
+                        <option value="west">غرب (18 ج.م)</option>
+                      </select>
+                      <input type="text" value={deliveryAddress} onChange={(e) => setDeliveryAddress(e.target.value)} placeholder="عنوان التوصيل بالتفصيل" className="p-2 border rounded text-xs w-2/3" />
+                    </div>
+                    <button onClick={placeOrder} disabled={!deliveryAddress} className="w-full bg-emerald-600 text-white py-2.5 rounded font-medium text-sm hover:bg-emerald-700 disabled:bg-gray-400">
+                      إتمام الطلب عبر واتساب 💬
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {showProfileModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                  <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm space-y-4">
+                    <h3 className="font-bold text-lg text-gray-800">👤 إعدادات الملف الشخصي والهدف</h3>
+                    <input type="number" placeholder="العمر" value={tempProfile.age} onChange={(e) => setTempProfile({...tempProfile, age: e.target.value})} className="w-full p-2 border rounded text-sm" />
+                    <select value={tempProfile.gender} onChange={(e) => setTempProfile({...tempProfile, gender: e.target.value})} className="w-full p-2 border rounded text-sm">
+                      <option value="male">ذكر</option>
+                      <option value="female">أنثى</option>
+                    </select>
+                    <input type="number" placeholder="الطول (سم)" value={tempProfile.height} onChange={(e) => setTempProfile({...tempProfile, height: e.target.value})} className="w-full p-2 border rounded text-sm" />
+                    <input type="number" placeholder="الوزن (كجم)" value={tempProfile.weight} onChange={(e) => setTempProfile({...tempProfile, weight: e.target.value})} className="w-full p-2 border rounded text-sm" />
+                    <select value={tempProfile.goal} onChange={(e) => setTempProfile({...tempProfile, goal: e.target.value})} className="w-full p-2 border rounded text-sm">
+                      <option value="lose">خسارة الوزن وحرق الدهون</option>
+                      <option value="gain">بناء عضلات وزيادة الوزن</option>
+                      <option value="maintain">الحفاظ على اللياقة والصحة</option>
+                    </select>
+                    <div className="flex gap-2 pt-2">
+                      <button onClick={() => setShowProfileModal(false)} className="w-full py-2 bg-gray-100 rounded text-sm">إلغاء</button>
+                      <button onClick={handleProfileSubmit} className="w-full py-2 bg-indigo-600 text-white rounded text-sm">حفظ التحديثات</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
