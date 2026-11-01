@@ -13,7 +13,6 @@
         body { font-family: 'Cairo', sans-serif; background-color: #fcf8f2; color: #2c221e; } 
         .pharaoh-header { background: linear-gradient(135deg, #1b365d 0%, #0f1f38 100%); border-bottom: 3px solid #d4af37; }
         .pharaoh-btn { background-color: #d4af37; color: #1b365d; font-weight: bold; }
-        .pharaoh-btn:hover { background-color: #c59b27; }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
@@ -27,191 +26,98 @@
 
         const INITIAL_PRODUCTS = {
             grocery: {
-                rice: { name: 'رز فاخر (كجم)', price: 30, stock: 50 },
-                pasta: { name: 'مكرونة (كيس)', price: 10, stock: 100 },
-                flour: { name: 'دقيق (كجم)', price: 18, stock: 30 },
-                oil: { name: 'زيت طعام (لتر)', price: 90, stock: 20 },
-                ghee: { name: 'سمن بلدي (كجم)', price: 300, stock: 10 },
-                sugar: { name: 'سكر (كجم)', price: 27, stock: 40 },
-                tea: { name: 'شاي (علبة)', price: 40, stock: 25 },
-                coffee: { name: 'بن (كيس)', price: 60, stock: 15 },
-                milk: { name: 'لبن (لتر)', price: 25, stock: 35 },
-                cheese: { name: 'جبنة (كيلو)', price: 35, stock: 30 },
-                eggs: { name: 'بيض (كرتونة)', price: 150, stock: 12 },
+                item1: { name: 'رز فاخر (كجم)', price: 30, stock: 50 },
+                item2: { name: 'مكرونة (كيس)', price: 10, stock: 100 },
+                item3: { name: 'دقيق (كجم)', price: 18, stock: 30 },
+                item4: { name: 'زيت طعام (لتر)', price: 90, stock: 20 },
+                item5: { name: 'سمن بلدي (كجم)', price: 300, stock: 10 },
+                item6: { name: 'سكر (كجم)', price: 27, stock: 40 },
             },
             cosmetics: {
-                shampoo: { name: 'شامبو شعر (عبوة)', price: 85, stock: 15 },
-                conditioner: { name: 'بلسم شعر (عبوة)', price: 80, stock: 15 },
-                body_wash: { name: 'شاور للجسم (عبوة)', price: 95, stock: 12 },
-                soap: { name: 'صابون (قطعة)', price: 15, stock: 60 },
-                moisturizer: { name: 'مرطب بشرة (عبوة)', price: 120, stock: 10 },
-                perfume: { name: 'عطر ملكي (عبوة)', price: 350, stock: 8 },
-                lipstick: { name: 'أحمر شفاه', price: 110, stock: 20 },
-                mascara: { name: 'مسكارا', price: 130, stock: 15 },
-                sunscreen: { name: 'واقي شمس', price: 160, stock: 8 },
+                c1: { name: 'شامبو شعر (عبوة)', price: 85, stock: 15 },
+                c2: { name: 'بلسم شعر (عبوة)', price: 80, stock: 15 },
+                c3: { name: 'مرطب بشرة (عبوة)', price: 120, stock: 10 },
+                c4: { name: 'عطر ملكي (عبوة)', price: 350, stock: 8 },
             }
         };
 
-        const INITIAL_SUBSCRIBERS = [
-            { id: 1, name: 'محمود حسن', phone: '01000000000', plan: 'برنامج اللياقة الفرعوني - تنشيف' }
-        ];
-
         function App() {
-            const [activeTab, setActiveTab] = useState('grocery'); 
-            const [isAdminMode, setIsAdminMode] = useState(false);
-            const [showPasswordModal, setShowPasswordModal] = useState(false);
-            const [passwordInput, setPasswordInput] = useState('');
-            const [passwordError, setPasswordError] = useState(false);
-            
+            const [tab, setTab] = useState('grocery');
+            const [isAdmin, setIsAdmin] = useState(false);
+            const [showModal, setShowModal] = useState(false);
+            const [pass, setPass] = useState('');
+            const [error, setError] = useState(false);
             const [products, setProducts] = useState(INITIAL_PRODUCTS);
             const [cart, setCart] = useState([]);
-            const [subscribers, setSubscribers] = useState(INITIAL_SUBSCRIBERS);
+            const [subscribers, setSubscribers] = useState([
+                { id: 1, name: 'محمود حسن', phone: '01000000000', plan: 'برنامج التنشيف' }
+            ]);
 
-            const [newName, setNewName] = useState('');
-            const [newPrice, setNewPrice] = useState('');
-            const [newStock, setNewStock] = useState('');
-            const [targetGroup, setTargetGroup] = useState('grocery');
-
-            const [subName, setSubName] = useState('');
-            const [subPhone, setSubPhone] = useState('');
-            const [subPlan, setSubPlan] = useState('');
-
-            const handleAdminClick = () => {
-                if (isAdminMode) {
-                    setIsAdminMode(false);
-                    setActiveTab('grocery');
-                } else {
-                    setShowPasswordModal(true);
-                    setPasswordInput('');
-                    setPasswordError(false);
-                }
-            };
-
-            const verifyPassword = (e) => {
+            const handleAdminLogin = (e) => {
                 e.preventDefault();
-                if (passwordInput === ADMIN_PASSWORD) {
-                    setIsAdminMode(true);
-                    setShowPasswordModal(false);
-                    setPasswordError(false);
-                    setActiveTab('admin');
+                if (pass === ADMIN_PASSWORD) {
+                    setIsAdmin(true);
+                    setShowModal(false);
+                    setTab('admin');
+                    setError(false);
                 } else {
-                    setPasswordError(true);
+                    setError(true);
                 }
             };
 
-            const addToCart = (itemKey, itemObj, category) => {
-                setCart(prevCart => {
-                    const existing = prevCart.find(i => i.key === itemKey);
-                    if (existing) {
-                        return prevCart.map(i => i.key === itemKey ? {...i, qty: i.qty + 1} : i);
-                    } else {
-                        return [...prevCart, { key: itemKey, name: itemObj.name, price: itemObj.price, qty: 1, category }];
+            const addToCart = (key, item) => {
+                setCart(prev => {
+                    const exist = prev.find(i => i.key === key);
+                    if (exist) {
+                        return prev.map(i => i.key === key ? {...i, qty: i.qty + 1} : i);
                     }
+                    return [...prev, { key, name: item.name, price: item.price, qty: 1 }];
                 });
-                alert(`تمت إضافة "${itemObj.name}" إلى السلة بنجاح!`);
+                alert(`تمت إضافة "${item.name}" للسلة بنجاح!`);
             };
 
-            const updateCartQty = (key, delta) => {
-                setCart(prevCart => {
-                    return prevCart.map(i => {
-                        if (i.key === key) {
-                            const newQty = i.qty + delta;
-                            return newQty > 0 ? {...i, qty: newQty} : null;
-                        }
-                        return i;
-                    }).filter(Boolean);
-                });
+            const updateQty = (key, delta) => {
+                setCart(prev => prev.map(i => i.key === key ? {...i, qty: i.qty + delta} : i).filter(i => i.qty > 0));
             };
 
-            const getTotalPrice = () => {
-                return cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            };
+            const getTotal = () => cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
 
-            const checkoutWhatsApp = () => {
+            const sendWhatsApp = () => {
                 if (cart.length === 0) return;
-                let message = "مرحباً، أرجو تنفيذ الطلب التالي من متجر شنوت:\n\n";
-                cart.forEach((item, index) => {
-                    message += `${index + 1}. ${item.name} - الكمية: ${item.qty} - السعر: ${item.price * item.qty} ج.م\n`;
+                let msg = "طلب جديد من تطبيق شنوت - SHENUT:\n\n";
+                cart.forEach((i, idx) => {
+                    msg += `${idx + 1}. ${i.name} × ${i.qty} = ${i.price * i.qty} ج.م\n`;
                 });
-                message += `\nالإجمالي الكلي: ${getTotalPrice()} ج.م`;
-                const encoded = encodeURIComponent(message);
-                window.open(`https://wa.me/${OWNER_WHATSAPP_NUMBER}?text=${encoded}`, '_blank');
-            };
-
-            const handleAddProduct = (e) => {
-                e.preventDefault();
-                if (!newName || !newPrice) return;
-                const key = 'item_' + Date.now();
-                setProducts(prev => ({
-                    ...prev,
-                    [targetGroup]: {
-                        ...prev[targetGroup],
-                        [key]: { name: newName, price: Number(newPrice), stock: Number(newStock) || 10 }
-                    }
-                }));
-                setNewName('');
-                setNewPrice('');
-                setNewStock('');
-                alert('تمت إضافة المنتج بنجاح إلى متجر شنوت الملكي!');
-            };
-
-            const handleDeleteProduct = (group, key) => {
-                const updated = {...products[group]};
-                delete updated[key];
-                setProducts(prev => ({ ...prev, [group]: updated }));
-            };
-
-            const handleAddSubscriber = (e) => {
-                e.preventDefault();
-                if (!subName || !subPhone) return;
-                const newSub = { id: Date.now(), name: subName, phone: subPhone, plan: subPlan || 'باقة اللياقة الملكية' };
-                setSubscribers(prev => [...prev, newSub]);
-                setSubName('');
-                setSubPhone('');
-                setSubPlan('');
-                alert('تم تسجيل المشترك بنجاح!');
-            };
-
-            const handleDeleteSubscriber = (id) => {
-                setSubscribers(prev => prev.filter(sub => sub.id !== id));
+                msg += `\nالإجمالي النهائي: ${getTotal()} ج.م`;
+                window.open(`https://wa.me/${OWNER_WHATSAPP_NUMBER}?text=` + encodeURIComponent(msg), '_blank');
             };
 
             return (
-                <div className="min-h-screen flex flex-col font-sans">
-                    <header className="pharaoh-header text-white shadow-md p-3.5 flex flex-wrap justify-between items-center gap-2">
-                        <h1 className="text-xl font-extrabold tracking-wider text-[#ffd700]">
-                            𓋹 شنوت <span className="text-sm font-semibold text-gray-300">SHENUT</span>[span_0](start_span)[span_0](end_span)
-                        </h1>
-                        <div className="flex flex-wrap gap-2 items-center text-sm">
-                            <button onClick={() => setActiveTab('grocery')} className={`px-3 py-1.5 rounded-lg transition ${activeTab === 'grocery' ? 'bg-[#d4af37] text-[#1b365d] font-bold' : 'text-gray-200 hover:bg-white/10'}`}>السلع الغذائية</button>
-                            <button onClick={() => setActiveTab('cosmetics')} className={`px-3 py-1.5 rounded-lg transition ${activeTab === 'cosmetics' ? 'bg-[#d4af37] text-[#1b365d] font-bold' : 'text-gray-200 hover:bg-white/10'}`}>أدوات التجميل</button>
-                            <button onClick={() => setActiveTab('fitness')} className={`px-3 py-1.5 rounded-lg transition ${activeTab === 'fitness' ? 'bg-[#d4af37] text-[#1b365d] font-bold' : 'text-gray-200 hover:bg-white/10'}`}>اللياقة 𓃭</button>
-                            <button onClick={() => setActiveTab('cart')} className={`px-3 py-1.5 rounded-lg transition relative ${activeTab === 'cart' ? 'bg-[#d4af37] text-[#1b365d] font-bold' : 'text-gray-200 hover:bg-white/10'}`}>
-                                السلة 🛒 {cart.length > 0 && <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">{cart.reduce((a,c)=>a+c.qty,0)}</span>}
+                <div className="min-h-screen flex flex-col">
+                    <header className="pharaoh-header text-white p-3.5 flex flex-wrap justify-between items-center gap-2">
+                        <h1 className="text-lg font-bold text-[#ffd700]">𓋹 شنوت SHENUT</h1>
+                        <div className="flex flex-wrap gap-2 text-sm">
+                            <button onClick={() => setTab('grocery')} className={`px-3 py-1.5 rounded-lg ${tab === 'grocery' ? 'bg-[#d4af37] text-[#1b365d] font-bold' : 'bg-white/10'}`}>السلع</button>
+                            <button onClick={() => setTab('cosmetics')} className={`px-3 py-1.5 rounded-lg ${tab === 'cosmetics' ? 'bg-[#d4af37] text-[#1b365d] font-bold' : 'bg-white/10'}`}>التجميل</button>
+                            <button onClick={() => setTab('fitness')} className={`px-3 py-1.5 rounded-lg ${tab === 'fitness' ? 'bg-[#d4af37] text-[#1b365d] font-bold' : 'bg-white/10'}`}>اللياقة</button>
+                            <button onClick={() => setTab('cart')} className={`px-3 py-1.5 rounded-lg relative ${tab === 'cart' ? 'bg-[#d4af37] text-[#1b365d] font-bold' : 'bg-white/10'}`}>
+                                السلة 🛒 {cart.length > 0 && <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">{cart.reduce((a,c)=>a+c.qty,0)}</span>}
                             </button>
-                            <button onClick={handleAdminClick} className={`px-3.5 py-1.5 rounded-xl font-medium flex items-center gap-1 shadow-sm transition ${isAdminMode ? 'bg-[#d4af37] text-[#1b365d]' : 'bg-[#294a7a] text-white border border-[#d4af37]/40'}`}>
-                                <span>لوحة التحكم</span> 🔒
+                            <button onClick={() => { if(isAdmin) setTab('admin'); else { setShowModal(true); setPass(''); setError(false); } }} className="px-3.5 py-1.5 rounded-xl bg-[#294a7a] text-white border border-[#d4af37]/40">
+                                لوحة التحكم 🔒
                             </button>
                         </div>
                     </header>
 
-                    {showPasswordModal && (
-                        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-                            <div className="bg-[#fcf8f2] border-2 border-[#d4af37] rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-                                <h3 className="text-lg font-bold mb-2 text-[#1b365d]">𓋹 بوابة المالك الملكية</h3>
-                                <p className="text-xs text-gray-600 mb-4">أدخل كلمة المرور السرية للوصول إلى لوحة تحكم شنوت.</p>
-                                <form onSubmit={verifyPassword}>
-                                    <input 
-                                        type="password" 
-                                        value={passwordInput} 
-                                        onChange={(e) => setPasswordInput(e.target.value)} 
-                                        placeholder="أدخل كلمة المرور..." 
-                                        className="w-full border-2 border-[#d4af37]/60 bg-white p-3 rounded-xl mb-2 text-black focus:outline-none focus:ring-2 focus:ring-[#1b365d]"
-                                        autoFocus
-                                    />
-                                    {passwordError && <p className="text-red-600 text-xs mb-2 font-bold">كلمة المرور غير صحيحة، حاول مجدداً.</p>}
+                    {showModal && (
+                        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+                            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border-2 border-[#d4af37]">
+                                <h3 className="font-bold mb-2 text-[#1b365d]">كلمة مرور لوحة التحكم</h3>
+                                <form onSubmit={handleAdminLogin}>
+                                    <input type="password" value={pass} onChange={e => setPass(e.target.value)} placeholder="أدخل كلمة السر..." className="w-full border p-3 rounded-xl mb-2 text-black" autoFocus />
+                                    {error && <p className="text-red-600 text-xs mb-2 font-bold">كلمة السر غير صحيحة!</p>}
                                     <div className="flex justify-end gap-2 mt-4">
-                                        <button type="button" onClick={() => setShowPasswordModal(false)} className="px-4 py-2 bg-gray-200 rounded-xl text-gray-700 text-sm">إلغاء</button>
+                                        <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 bg-gray-200 rounded-xl text-sm">إلغاء</button>
                                         <button type="submit" className="px-4 py-2 pharaoh-btn rounded-xl text-sm">دخول</button>
                                     </div>
                                 </form>
@@ -220,158 +126,98 @@
                     )}
 
                     <main className="flex-1 p-4 max-w-4xl mx-auto w-full">
-                        {activeTab === 'grocery' && (
+                        {tab === 'grocery' && (
                             <div>
-                                <h2 className="text-xl font-bold mb-4 text-[#1b365d] border-b pb-2 border-[#d4af37]/30">𓍝 قسم السلع والمواد الغذائية</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {Object.entries(products.grocery).map(([key, item]) => (
-                                        <div key={key} className="bg-white p-4 rounded-xl shadow-sm border border-[#d4af37]/30 flex justify-between items-center">
+                                <h2 className="text-lg font-bold mb-3 text-[#1b365d]">𓍝 السلع الغذائية</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {Object.entries(products.grocery).map(([k, item]) => (
+                                        <div key={k} className="bg-white p-4 rounded-xl shadow-sm border flex justify-between items-center">
                                             <div>
-                                                <h4 className="font-bold text-gray-800">{item.name}</h4>
-                                                <p className="text-[#1b365d] font-semibold">{item.price} ج.م</p>
-                                                <p className="text-xs text-gray-400">المخزون: {item.stock}</p>
+                                                <h4 className="font-bold">{item.name}</h4>
+                                                <p className="text-[#1b365d] text-sm font-semibold">{item.price} ج.م</p>
                                             </div>
-                                            <button onClick={() => addToCart(key, item, 'grocery')} className="pharaoh-btn px-4 py-1.5 rounded-lg text-xs shadow-sm">إضافة للسلة</button>
+                                            <button onClick={() => addToCart(k, item)} className="pharaoh-btn px-3 py-1.5 rounded-lg text-xs">إضافة للسلة</button>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
 
-                        {activeTab === 'cosmetics' && (
+                        {tab === 'cosmetics' && (
                             <div>
-                                <h2 className="text-xl font-bold mb-4 text-[#1b365d] border-b pb-2 border-[#d4af37]/30">𓁷 قسم أدوات التجميل والعناية الشخصية</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {Object.entries(products.cosmetics).map(([key, item]) => (
-                                        <div key={key} className="bg-white p-4 rounded-xl shadow-sm border border-[#d4af37]/30 flex justify-between items-center">
+                                <h2 className="text-lg font-bold mb-3 text-[#1b365d]">𓁷 أدوات التجميل والعناية</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {Object.entries(products.cosmetics).map(([k, item]) => (
+                                        <div key={k} className="bg-white p-4 rounded-xl shadow-sm border flex justify-between items-center">
                                             <div>
-                                                <h4 className="font-bold text-gray-800">{item.name}</h4>
-                                                <p className="text-[#1b365d] font-semibold">{item.price} ج.م</p>
-                                                <p className="text-xs text-gray-400">المخزون: {item.stock}</p>
+                                                <h4 className="font-bold">{item.name}</h4>
+                                                <p className="text-[#1b365d] text-sm font-semibold">{item.price} ج.م</p>
                                             </div>
-                                            <button onClick={() => addToCart(key, item, 'cosmetics')} className="pharaoh-btn px-4 py-1.5 rounded-lg text-xs shadow-sm">إضافة للسلة</button>
+                                            <button onClick={() => addToCart(k, item)} className="pharaoh-btn px-3 py-1.5 rounded-lg text-xs">إضافة للسلة</button>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
 
-                        {activeTab === 'cart' && (
-                            <div>
-                                <h2 className="text-xl font-bold mb-4 text-[#1b365d] border-b pb-2 border-[#d4af37]/30">🛒 سلة المشتريات والطلب النهائي</h2>
+                        {tab === 'cart' && (
+                            <div className="bg-white p-5 rounded-2xl shadow-sm border">
+                                <h2 className="text-lg font-bold mb-4 text-[#1b365d]">🛒 سلة المشتريات</h2>
                                 {cart.length === 0 ? (
-                                    <div className="bg-white p-8 rounded-2xl text-center border border-[#d4af37]/30 shadow-sm">
-                                        <p className="text-gray-500 mb-2">سلة المشتريات فارغة حالياً.</p>
-                                        <button onClick={() => setActiveTab('grocery')} className="pharaoh-btn px-4 py-2 rounded-xl text-sm">تصفح السلع والمنتجات</button>
-                                    </div>
+                                    <p className="text-gray-500 text-center py-4">السلة فارغة حالياً.</p>
                                 ) : (
-                                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#d4af37]/30 space-y-4">
-                                        <div className="space-y-3 divide-y">
-                                            {cart.map((item) => (
-                                                <div key={item.key} className="pt-3 first:pt-0 flex justify-between items-center">
-                                                    <div>
-                                                        <h4 className="font-bold text-gray-800">{item.name}</h4>
-                                                        <p className="text-sm text-[#1b365d]">{item.price} ج.م × {item.qty} = <span className="font-bold">{item.price * item.qty} ج.م</span></p>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <button onClick={() => updateCartQty(item.key, -1)} className="bg-gray-200 text-gray-800 px-2.5 py-1 rounded-lg font-bold">-</button>
-                                                        <span className="font-bold text-sm">{item.qty}</span>
-                                                        <button onClick={() => updateCartQty(item.key, 1)} className="bg-gray-200 text-gray-800 px-2.5 py-1 rounded-lg font-bold">+</button>
-                                                    </div>
+                                    <div className="space-y-3">
+                                        {cart.map(i => (
+                                            <div key={i.key} className="flex justify-between items-center border-b pb-2 text-sm">
+                                                <div>
+                                                    <span className="font-bold">{i.name}</span>
+                                                    <p className="text-xs text-gray-500">{i.price} ج.م × {i.qty}</p>
                                                 </div>
-                                            ))}
+                                                <div className="flex items-center gap-2">
+                                                    <button onClick={() => updateQty(i.key, -1)} className="bg-gray-200 px-2 py-0.5 rounded font-bold">-</button>
+                                                    <span>{i.qty}</span>
+                                                    <button onClick={() => updateQty(i.key, 1)} className="bg-gray-200 px-2 py-0.5 rounded font-bold">+</button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <div className="pt-3 flex justify-between items-center font-bold text-base">
+                                            <span>الإجمالي النهائي:</span>
+                                            <span className="text-[#1b365d] text-xl">{getTotal()} ج.م</span>
                                         </div>
-
-                                        <div className="border-t pt-4 flex justify-between items-center">
-                                            <span className="text-lg font-bold text-gray-800">السعر الإجمالي النهائي:</span>
-                                            <span className="text-2xl font-extrabold text-[#1b365d]">{getTotalPrice()} ج.م</span>
-                                        </div>
-
-                                        <button onClick={checkoutWhatsApp} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold text-base shadow-md transition">إرسال الطلب عبر الواتساب</button>
+                                        <button onClick={sendWhatsApp} className="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold mt-3 shadow-md">إرسال الطلب عبر الواتساب</button>
                                     </div>
                                 )}
                             </div>
                         )}
 
-                        {activeTab === 'admin' && isAdminMode && (
-                            <div className="space-y-6">
-                                <h2 className="text-xl font-bold text-[#1b365d] flex items-center gap-2 border-b pb-2 border-[#d4af37]">
-                                    <span>𓋹 لوحة تحكم المالك الملكية</span>[span_1](start_span)[span_1](end_span)
-                                </h2>
-
-                                <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#d4af37]/40">
-                                    <h3 className="font-bold text-[#1b365d] mb-3">👥 بيانات مشتركي قسم اللياقة البدنية</h3>
-                                    <form onSubmit={handleAddSubscriber} className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                                        <input type="text" placeholder="اسم المشترك" value={subName} onChange={e => setSubName(e.target.value)} className="border border-gray-300 p-2.5 rounded-xl text-sm" required />
-                                        <input type="text" placeholder="رقم الهاتف / الواتساب" value={subPhone} onChange={e => setSubPhone(e.target.value)} className="border border-gray-300 p-2.5 rounded-xl text-sm" required />
-                                        <input type="text" placeholder="الباقة التدريبية" value={subPlan} onChange={e => setSubPlan(e.target.value)} className="border border-gray-300 p-2.5 rounded-xl text-sm" />
-                                        <button type="submit" className="sm:col-span-3 pharaoh-btn py-2 rounded-xl text-sm">إضافة مشترك جديد</button>
-                                    </form>
-
-                                    <div className="space-y-2">
-                                        {subscribers.map((sub) => (
-                                            <div key={sub.id} className="bg-gray-50 p-3 rounded-xl border flex justify-between items-center text-sm">
-                                                <div>
-                                                    <span className="font-bold text-gray-800">{sub.name}</span> - <span className="text-indigo-600">{sub.phone}</span>
-                                                    <p className="text-xs text-gray-500">الباقة: {sub.plan}</p>
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <a href={`https://wa.me/${sub.phone}`} target="_blank" className="bg-emerald-600 text-white px-3 py-1 rounded-lg text-xs">مراسلة</a>
-                                                    <button onClick={() => handleDeleteSubscriber(sub.id)} className="bg-red-600 text-white px-3 py-1 rounded-lg text-xs">حذف</button>
-                                                </div>
+                        {tab === 'admin' && isAdmin && (
+                            <div className="bg-white p-5 rounded-2xl shadow-sm border space-y-4">
+                                <h2 className="text-lg font-bold text-[#1b365d]">🛠️ لوحة تحكم المالك والمشتركين</h2>
+                                <div className="border-t pt-3">
+                                    <h4 className="font-bold text-sm mb-2 text-gray-700">مشتركو اللياقة البدنية المسجلون:</h4>
+                                    {subscribers.map(sub => (
+                                        <div key={sub.id} className="bg-gray-50 p-3 rounded-xl border flex justify-between items-center text-xs mb-2">
+                                            <div>
+                                                <span className="font-bold">{sub.name}</span> ({sub.phone})
+                                                <p className="text-gray-500">الباقة: {sub.plan}</p>
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#d4af37]/40">
-                                    <h3 className="font-bold text-[#1b365d] mb-3">📦 إضافة منتج جديد (سلع أو تجميل)</h3>
-                                    <form onSubmit={handleAddProduct} className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                                        <select value={targetGroup} onChange={e => setTargetGroup(e.target.value)} className="border border-gray-300 p-2.5 rounded-xl text-sm sm:col-span-2">
-                                            <option value="grocery">السلع الغذائية</option>
-                                            <option value="cosmetics">أدوات التجميل والعناية</option>
-                                        </select>
-                                        <input type="text" placeholder="اسم المنتج" value={newName} onChange={e => setNewName(e.target.value)} className="border border-gray-300 p-2.5 rounded-xl text-sm" required />
-                                        <input type="number" placeholder="السعر (ج.م)" value={newPrice} onChange={e => setNewPrice(e.target.value)} className="border border-gray-300 p-2.5 rounded-xl text-sm" required />
-                                        <input type="number" placeholder="المخزون" value={newStock} onChange={e => setNewStock(e.target.value)} className="border border-gray-300 p-2.5 rounded-xl text-sm sm:col-span-2" />
-                                        <button type="submit" className="sm:col-span-2 pharaoh-btn py-2 rounded-xl text-sm">حفظ المنتج في النظام</button>
-                                    </form>
-
-                                    <h4 className="font-bold text-gray-700 mb-2 text-sm">حذف منتجات السلع:</h4>
-                                    <div className="space-y-1 mb-3">
-                                        {Object.entries(products.grocery).map(([key, item]) => (
-                                            <div key={key} className="bg-gray-50 p-2 rounded-lg border flex justify-between items-center text-xs">
-                                                <span>[سلع] {item.name} - {item.price} ج.م</span>
-                                                <button onClick={() => handleDeleteProduct('grocery', key)} className="bg-red-500 text-white px-2 py-0.5 rounded">حذف</button>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <h4 className="font-bold text-gray-700 mb-2 text-sm">حذف منتجات التجميل والعناية:</h4>
-                                    <div className="space-y-1">
-                                        {Object.entries(products.cosmetics).map(([key, item]) => (
-                                            <div key={key} className="bg-gray-50 p-2 rounded-lg border flex justify-between items-center text-xs">
-                                                <span>[تجميل] {item.name} - {item.price} ج.م</span>
-                                                <button onClick={() => handleDeleteProduct('cosmetics', key)} className="bg-red-500 text-white px-2 py-0.5 rounded">حذف</button>
-                                            </div>
-                                        ))}
-                                    </div>
+                                            <a href={`https://wa.me/${sub.phone}`} target="_blank" className="bg-emerald-600 text-white px-3 py-1 rounded-lg">مراسلة</a>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         )}
 
-                        {activeTab === 'fitness' && (
-                            <div>
-                                <h2 className="text-xl font-bold mb-4 text-[#1b365d]">𓃭 قسم اللياقة البدنية والاشتراكات الملكية</h2>
-                                <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#d4af37]/40 text-center">
-                                    <p className="text-gray-700 mb-4">احصل على جدولك التدريبي وبرنامجك الغذائي المصمم خصيصاً لهدفك البدني.</p>
-                                    <a href={`https://wa.me/${OWNER_WHATSAPP_NUMBER}?text=مرحباً، أرجو تفعيل اشتراكي في قسم اللياقة البدنية`} target="_blank" className="pharaoh-btn px-6 py-2.5 rounded-xl inline-block shadow-md">اطلب الاشتراك وتفعيل الحساب عبر الواتساب</a>
-                                </div>
+                        {tab === 'fitness' && (
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border text-center">
+                                <h2 className="text-lg font-bold mb-2 text-[#1b365d]">𓃭 قسم اللياقة البدنية والاشتراكات</h2>
+                                <p className="text-gray-600 text-sm mb-4">اطلب برنامجك التدريبي والغذائي المخصص لهدفك الآن.</p>
+                                <a href={`https://wa.me/${OWNER_WHATSAPP_NUMBER}?text=مرحباً، أرجو تفعيل اشتراكي في قسم اللياقة البدنية`} target="_blank" className="pharaoh-btn px-6 py-2.5 rounded-xl inline-block text-sm shadow-md">تفعيل الاشتراك عبر الواتساب</a>
                             </div>
                         )}
                     </main>
 
-                    <footer className="pharaoh-header text-white text-center p-4 text-xs mt-auto border-t border-[#d4af37]/30">
+                    <footer className="pharaoh-header text-white text-center p-3 text-xs mt-auto">
                         جميع الحقوق محفوظة لتطبيق شنوت - SHENUT &copy; 2026 𓋹
                     </footer>
                 </div>
